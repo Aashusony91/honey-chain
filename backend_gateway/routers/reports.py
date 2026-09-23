@@ -18,6 +18,7 @@ from ..schemas import (
     ReportSubmissionResponse,
     VerificationResult,
 )
+from ..validation import validate_batch
 
 
 router = APIRouter(
@@ -65,20 +66,30 @@ def submit_report(
     """
     Receive a HoneyBatchPayload from the frontend.
 
-    For the initial Member 4 implementation, the orchestrator
-    response is mocked.
+    Gateway validation is performed before the current mock
+    verification flow.
 
-    Later this will forward the batch to Member 1's
-    orchestrator on port 8001.
+    Later this mock verification will be replaced by the live
+    Member 1 orchestrator response.
     """
+
+    # Run Member 4 gateway-owned validation.
+    validation_flags = validate_batch(payload.batch)
 
     # Temporary mock verification.
     # This will later be replaced by the live orchestrator response.
-    verification = VerificationResult(
-        status="VERIFIED",
-        confidence=0.92,
-        flags=[],
-    )
+    if validation_flags:
+        verification = VerificationResult(
+            status="FLAGGED_FOR_REVIEW",
+            confidence=0.50,
+            flags=validation_flags,
+        )
+    else:
+        verification = VerificationResult(
+            status="VERIFIED",
+            confidence=0.92,
+            flags=[],
+        )
 
     report_hash = generate_report_hash(
         payload,
