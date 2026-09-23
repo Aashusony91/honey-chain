@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..models import Report
+from ..orchestrator_client import call_orchestrator
 from ..schemas import (
     FarmerReportPayload,
     ReportSubmissionResponse,
@@ -51,6 +52,27 @@ def generate_report_hash(
     ).hexdigest()
 
 
+def create_mock_verification(
+    validation_flags: list[str],
+) -> VerificationResult:
+    """
+    Existing gateway fallback verification.
+    """
+
+    if validation_flags:
+        return VerificationResult(
+            status="FLAGGED_FOR_REVIEW",
+            confidence=0.50,
+            flags=validation_flags,
+        )
+
+    return VerificationResult(
+        status="VERIFIED",
+        confidence=0.92,
+        flags=[],
+    )
+
+
 @router.post(
     "/submit",
     response_model=ReportSubmissionResponse,
@@ -60,25 +82,30 @@ def submit_report(
     db: Session = Depends(get_db),
 ):
     """
-    Receive a HoneyBatchPayload from the frontend.
+    Receive a HoneyBatchPayload.
 
-    Gateway validation is performed before the current mock
-    verification flow.
+    Flow:
+    1. Gateway validation.
+    2. Try Member 1 orchestrator.
+    3. Fall back to gateway mock if unavailable.
+    4. Generate SHA-256.
+    5. Persist report.
     """
 
-    validation_flags = validate_batch(payload.batch)
+    validation_flags = validate_batch(
+        payload.batch
+    )
 
-    if validation_flags:
-        verification = VerificationResult(
-            status="FLAGGED_FOR_REVIEW",
-            confidence=0.50,
-            flags=validation_flags,
+    verification = None
+
+    if not validation_flags:
+        verification = call_orchestrator(
+            payload
         )
-    else:
-        verification = VerificationResult(
-            status="VERIFIED",
-            confidence=0.92,
-            flags=[],
+
+    if verification is None:
+        verification = create_mock_verification(
+            validation_flags
         )
 
     report_hash = generate_report_hash(
@@ -111,7 +138,7 @@ def get_report_status(
     db: Session = Depends(get_db),
 ):
     """
-    Return the current verification status of a submitted report.
+    Return the current verification status.
     """
 
     report = (
