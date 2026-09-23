@@ -17,11 +17,9 @@ from . import models
 from .routers import image_validation, public, reports
 
 
-# Create database tables.
 Base.metadata.create_all(bind=engine)
 
 
-# Create FastAPI application.
 app = FastAPI(
     title="Madhur-Trace Backend Gateway",
     description=(
@@ -32,7 +30,6 @@ app = FastAPI(
 )
 
 
-# Frontend CORS configuration.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -45,7 +42,6 @@ app.add_middleware(
 )
 
 
-# Register Member 4 API routers.
 app.include_router(reports.router)
 app.include_router(public.router)
 app.include_router(image_validation.router)
