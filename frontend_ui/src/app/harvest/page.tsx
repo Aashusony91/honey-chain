@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { getCurrentUser, type UserSession } from "@/lib/auth";
 import {
   saveHarvest,
   getStoredHarvests,
@@ -30,11 +32,11 @@ export default function HarvestPage() {
   const [floraSource, setFloraSource]   = useState("");
   const [weightKg, setWeightKg]         = useState("");
   const [hiveCount, setHiveCount]       = useState("");
-  const [farmerId, setFarmerId]         = useState("");
   const [gpsCoords, setGpsCoords]       = useState("");
   const [imageFile, setImageFile]       = useState<File | null>(null);
 
   // ── App State ───────────────────────────────────────────
+  const [user, setUser]                 = useState<UserSession | null>(null);
   const [online, setOnline]             = useState(true);
   const [backendUp, setBackendUp]       = useState<boolean | null>(null);
   const [allHarvests, setAllHarvests]   = useState<HarvestEntry[]>([]);
@@ -50,8 +52,14 @@ export default function HarvestPage() {
 
   const refresh = useCallback(() => setAllHarvests(getStoredHarvests()), []);
 
-  // ── Connectivity setup ──────────────────────────────────
+  // ── Auth & Connectivity setup ───────────────────────────
   useEffect(() => {
+    const session = getCurrentUser();
+    if (!session) {
+      router.push("/login");
+      return;
+    }
+    setUser(session);
     setOnline(isOnline());
     refresh();
 
@@ -145,7 +153,7 @@ export default function HarvestPage() {
   // ── Main Form Submit ────────────────────────────────────
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!floraSource || !weightKg || !hiveCount || !farmerId) {
+    if (!floraSource || !weightKg || !hiveCount || !user) {
       showToast("Please fill all required fields.", "error"); return;
     }
 
@@ -153,7 +161,7 @@ export default function HarvestPage() {
       batch_id: generateId(),
       parent_batch_id: null,
       child_batch_ids: [],
-      farmer_id: farmerId,
+      farmer_id: user.farmerId,
       harvest_weight_kg: parseFloat(weightKg),
       flora_source: floraSource,
       gps_coordinates: gpsCoords || "0.0,0.0",
@@ -176,7 +184,7 @@ export default function HarvestPage() {
       if (ok) {
         // Also save locally as synced
         const entry = saveHarvest({
-          batch_id: batch.batch_id, farmer_id: farmerId,
+          batch_id: batch.batch_id, farmer_id: user.farmerId,
           flora_source: floraSource, harvest_weight_kg: parseFloat(weightKg),
           hive_count: parseInt(hiveCount), gps_coordinates: gpsCoords || "0.0,0.0",
           harvest_timestamp: batch.harvest_timestamp,
@@ -187,7 +195,7 @@ export default function HarvestPage() {
     } else {
       // Save offline
       saveHarvest({
-        batch_id: batch.batch_id, farmer_id: farmerId,
+        batch_id: batch.batch_id, farmer_id: user.farmerId,
         flora_source: floraSource, harvest_weight_kg: parseFloat(weightKg),
         hive_count: parseInt(hiveCount), gps_coordinates: gpsCoords || "0.0,0.0",
         harvest_timestamp: batch.harvest_timestamp,
@@ -247,6 +255,11 @@ export default function HarvestPage() {
       )}
 
       <div className="mb-8">
+        <div className="mb-4">
+          <a href="/dashboard" className="text-sm text-amber-600 hover:text-amber-700 font-medium">
+            ← Back to Dashboard
+          </a>
+        </div>
         <h1 className="text-2xl font-bold text-stone-900">🐝 Log Harvest</h1>
         <p className="mt-1 text-sm text-stone-500">
           Submit a honey harvest for AI verification and blockchain anchoring.
@@ -279,12 +292,6 @@ export default function HarvestPage() {
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="card space-y-5">
-        <div>
-          <label className="label">Farmer / Beekeeper ID *</label>
-          <input type="text" value={farmerId} onChange={(e) => setFarmerId(e.target.value)}
-            placeholder="e.g. FARMER-MH-042" className="input-field" required />
-        </div>
-
         <div>
           <label className="label">Flora Source *</label>
           <select value={floraSource} onChange={(e) => setFloraSource(e.target.value)}

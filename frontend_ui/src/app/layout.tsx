@@ -30,8 +30,8 @@ export default function RootLayout({
               </span>
             </a>
             <div className="flex items-center gap-3">
-              <a href="/harvest" className="btn-secondary text-xs !px-4 !py-2">
-                🐝 Log Harvest
+              <a href="/dashboard" className="btn-secondary text-xs !px-4 !py-2">
+                👨‍🌾 Dashboard
               </a>
               <a href="/trace" className="btn-primary text-xs !px-4 !py-2">
                 🔍 Trace Batch
