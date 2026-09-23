@@ -20,7 +20,6 @@ from ..schemas import (
 )
 from ..validation import validate_batch
 
-
 router = APIRouter(
     prefix="/api/reports",
     tags=["Reports"],
@@ -33,9 +32,6 @@ def generate_report_hash(
 ) -> str:
     """
     Generate a SHA-256 hash for the submitted report.
-
-    The canonical HoneyBatchPayload is included in the hash input
-    together with the verification result.
     """
 
     hash_data = {
@@ -68,16 +64,10 @@ def submit_report(
 
     Gateway validation is performed before the current mock
     verification flow.
-
-    Later this mock verification will be replaced by the live
-    Member 1 orchestrator response.
     """
 
-    # Run Member 4 gateway-owned validation.
     validation_flags = validate_batch(payload.batch)
 
-    # Temporary mock verification.
-    # This will later be replaced by the live orchestrator response.
     if validation_flags:
         verification = VerificationResult(
             status="FLAGGED_FOR_REVIEW",
@@ -113,3 +103,34 @@ def submit_report(
         report_hash=report.report_hash,
         verification=verification,
     )
+
+
+@router.get("/{report_id}/status")
+def get_report_status(
+    report_id: int,
+    db: Session = Depends(get_db),
+):
+    """
+    Return the current verification status of a submitted report.
+    """
+
+    report = (
+        db.query(Report)
+        .filter(Report.id == report_id)
+        .first()
+    )
+
+    if report is None:
+        return {
+            "found": False,
+            "report_id": report_id,
+        }
+
+    return {
+        "found": True,
+        "report_id": report.id,
+        "status": report.verification_status or "PENDING",
+        "confidence": report.verification_confidence,
+        "report_hash": report.report_hash,
+        "created_at": report.created_at,
+    }
