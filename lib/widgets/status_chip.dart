@@ -49,6 +49,11 @@ class StatusChip extends StatelessWidget {
           'Laboratory Verified',
           Icons.science_outlined,
         ),
+      EvidenceType.processorRecorded => (
+           AppColors.primary,
+           'PROCESSOR RECORDED',
+            Icons.factory,
+         ),
     };
     return StatusChip(label: label, color: color, icon: icon);
   }

@@ -175,6 +175,8 @@ class MockData {
       processingStatus: StageStatus.completed,
       packagingStatus: StageStatus.completed,
       blockchainStatus: BlockchainStatus.pending,
+      childBatchCode: 'HC-JH-2026-00017-A',
+      productId: 'HC-PROD-2026-0012',
       timeline: _fullTimeline(DateTime(2026, 3, 15)),
     ),
     BatchModel(
@@ -217,123 +219,160 @@ class MockData {
 
   static List<TimelineStage> _fullTimeline(DateTime harvestDate) => [
         TimelineStage(
-          title: 'Harvested',
+          title: 'Hive Registered',
+          status: StageStatus.completed,
+          date: harvestDate.subtract(const Duration(days: 30)),
+          evidenceType: EvidenceType.sensorVerified,
+          description: 'Hive Gamma registered with ESP32 Smart Sensor Node.',
+        ),
+        TimelineStage(
+          title: 'Telemetry Recorded',
+          status: StageStatus.completed,
+          date: harvestDate.subtract(const Duration(days: 2)),
+          evidenceType: EvidenceType.sensorVerified,
+          description: 'Stable weight growth (45.6kg) and temp (33.9°C) recorded.',
+        ),
+        TimelineStage(
+          title: 'Harvest Recorded',
           status: StageStatus.completed,
           date: harvestDate,
           evidenceType: EvidenceType.farmerRecorded,
-          description: 'Harvest recorded by beekeeper after physical inspection.',
+          description: '12.5 kg honey harvested by Beekeeper Rajesh Kumar.',
         ),
         TimelineStage(
-          title: 'Collected',
+          title: 'Batch Created',
           status: StageStatus.completed,
           date: harvestDate.add(const Duration(days: 1)),
           evidenceType: EvidenceType.farmerRecorded,
+          description: 'Batch HC-JH-2026-00017 logged in local supply chain ledger.',
         ),
         TimelineStage(
-          title: 'Quality Verification',
+          title: 'Laboratory QC',
           status: StageStatus.verified,
           date: harvestDate.add(const Duration(days: 4)),
           evidenceType: EvidenceType.laboratoryVerified,
-          description: 'Moisture, HMF, and pollutant screening passed.',
+          description: 'Moisture 17.2%, HMF 12.5mg/kg. Clean adulterant screen.',
         ),
         TimelineStage(
           title: 'Processing',
           status: StageStatus.completed,
           date: harvestDate.add(const Duration(days: 7)),
-          evidenceType: EvidenceType.farmerRecorded,
-          description: 'Filtered and bottled at certified facility.',
+          evidenceType: EvidenceType.processorRecorded,
+          description: 'Cold mesh filtration. Child Batch HC-JH-2026-00017-A created.',
         ),
         TimelineStage(
           title: 'Packaging',
           status: StageStatus.completed,
           date: harvestDate.add(const Duration(days: 9)),
-          evidenceType: EvidenceType.farmerRecorded,
-          description: 'QR-labelled jars prepared for market.',
+          evidenceType: EvidenceType.processorRecorded,
+          description: 'Bottled in 500g glass jars at Pahalgam Hub #2.',
+        ),
+        TimelineStage(
+          title: 'Product Registered',
+          status: StageStatus.completed,
+          date: harvestDate.add(const Duration(days: 10)),
+          evidenceType: EvidenceType.processorRecorded,
+          description: 'Product HC-PROD-2026-0012 linked to Passport QR Code.',
         ),
       ];
 
   static List<TimelineStage> _partialTimeline(DateTime harvestDate) => [
         TimelineStage(
-          title: 'Harvested',
+          title: 'Hive Registered',
+          status: StageStatus.completed,
+          date: harvestDate.subtract(const Duration(days: 20)),
+          evidenceType: EvidenceType.sensorVerified,
+        ),
+        TimelineStage(
+          title: 'Harvest Recorded',
           status: StageStatus.completed,
           date: harvestDate,
           evidenceType: EvidenceType.farmerRecorded,
         ),
         TimelineStage(
-          title: 'Collected',
+          title: 'Batch Created',
           status: StageStatus.completed,
           date: harvestDate.add(const Duration(days: 1)),
           evidenceType: EvidenceType.farmerRecorded,
         ),
         TimelineStage(
-          title: 'Quality Verification',
+          title: 'Laboratory QC',
           status: StageStatus.verified,
           date: harvestDate.add(const Duration(days: 3)),
           evidenceType: EvidenceType.laboratoryVerified,
+          description: 'Lab test verified by Kashmir Food Testing Lab.',
         ),
         TimelineStage(
           title: 'Processing',
           status: StageStatus.inProgress,
           date: null,
-          evidenceType: EvidenceType.farmerRecorded,
+          evidenceType: EvidenceType.processorRecorded,
+          description: 'Currently undergoing filtration.',
         ),
         TimelineStage(
           title: 'Packaging',
           status: StageStatus.pending,
           date: null,
-          evidenceType: EvidenceType.farmerRecorded,
+          evidenceType: EvidenceType.processorRecorded,
         ),
       ];
 
   static List<TimelineStage> _earlyTimeline(DateTime harvestDate) => [
         TimelineStage(
-          title: 'Harvested',
+          title: 'Hive Registered',
+          status: StageStatus.completed,
+          date: harvestDate.subtract(const Duration(days: 15)),
+          evidenceType: EvidenceType.sensorVerified,
+        ),
+        TimelineStage(
+          title: 'Harvest Recorded',
           status: StageStatus.completed,
           date: harvestDate,
           evidenceType: EvidenceType.farmerRecorded,
         ),
         TimelineStage(
-          title: 'Collected',
+          title: 'Batch Created',
           status: StageStatus.completed,
-          date: harvestDate.add(const Duration(days: 2)),
+          date: harvestDate.add(const Duration(days: 1)),
           evidenceType: EvidenceType.farmerRecorded,
         ),
         TimelineStage(
-          title: 'Quality Verification',
+          title: 'Laboratory QC',
           status: StageStatus.inProgress,
           date: null,
           evidenceType: EvidenceType.laboratoryVerified,
+          description: 'Samples submitted for moisture and HMF testing.',
         ),
         TimelineStage(
           title: 'Processing',
           status: StageStatus.pending,
           date: null,
-          evidenceType: EvidenceType.farmerRecorded,
+          evidenceType: EvidenceType.processorRecorded,
         ),
         TimelineStage(
           title: 'Packaging',
           status: StageStatus.pending,
           date: null,
-          evidenceType: EvidenceType.farmerRecorded,
+          evidenceType: EvidenceType.processorRecorded,
         ),
       ];
 
   static List<TimelineStage> newBatchTimeline(DateTime harvestDate) => [
         TimelineStage(
-          title: 'Harvested',
+          title: 'Harvest Recorded',
           status: StageStatus.completed,
           date: harvestDate,
           evidenceType: EvidenceType.farmerRecorded,
           description: 'Harvest recorded by beekeeper.',
         ),
         TimelineStage(
-          title: 'Collected',
-          status: StageStatus.pending,
-          date: null,
+          title: 'Batch Created',
+          status: StageStatus.completed,
+          date: harvestDate,
           evidenceType: EvidenceType.farmerRecorded,
         ),
         TimelineStage(
-          title: 'Quality Verification',
+          title: 'Laboratory QC',
           status: StageStatus.pending,
           date: null,
           evidenceType: EvidenceType.laboratoryVerified,
@@ -342,13 +381,13 @@ class MockData {
           title: 'Processing',
           status: StageStatus.pending,
           date: null,
-          evidenceType: EvidenceType.farmerRecorded,
+          evidenceType: EvidenceType.processorRecorded,
         ),
         TimelineStage(
           title: 'Packaging',
           status: StageStatus.pending,
           date: null,
-          evidenceType: EvidenceType.farmerRecorded,
+          evidenceType: EvidenceType.processorRecorded,
         ),
       ];
 
@@ -364,6 +403,36 @@ class MockData {
       isVerified: true,
       testedAt: DateTime(2026, 3, 19),
       notes: 'Meets FSSAI honey standards.',
+    ),
+  ];
+
+  static final processingEvents = <ProcessingEventModel>[
+    ProcessingEventModel(
+      id: 'proc-001',
+      batchId: 'batch-001',
+      processorId: 'processor-001',
+      processorName: 'Kashmir Processing Facility',
+      eventType: 'Cold Extraction & Mesh Filtration',
+      description:
+          'Raw honey filtered through 200-micron stainless steel mesh at 34°C. Pollen preserved, wax removed.',
+      completedAt: DateTime(2026, 3, 22),
+      facility: 'Pahalgam Processing Plant #1',
+      inputBatchId: 'HC-JH-2026-00017',
+      outputBatchId: 'HC-JH-2026-00017-A',
+    ),
+  ];
+
+  static final packagingEvents = <PackagingEventModel>[
+    PackagingEventModel(
+      id: 'pack-001',
+      batchId: 'batch-001',
+      facility: 'Pahalgam Bottling Hub #2',
+      packageSize: '500g Food-Grade Glass Jar',
+      productId: 'HC-PROD-2026-0012',
+      outputBatchId: 'HC-JH-2026-00017-A',
+      packagedAt: DateTime(2026, 3, 24),
+      packagerName: 'Kashmir Valley Packaging Team',
+      notes: 'Tamper-evident seal applied with unique QR batch code label.',
     ),
   ];
 

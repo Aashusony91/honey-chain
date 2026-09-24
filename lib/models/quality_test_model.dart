@@ -61,6 +61,9 @@ class ProcessingEventModel {
     required this.eventType,
     required this.description,
     required this.completedAt,
+    this.facility = 'Pahalgam Processing Plant #1',
+    this.inputBatchId,
+    this.outputBatchId,
   });
 
   final String id;
@@ -70,6 +73,9 @@ class ProcessingEventModel {
   final String eventType;
   final String description;
   final DateTime completedAt;
+  final String facility;
+  final String? inputBatchId;
+  final String? outputBatchId;
 
   factory ProcessingEventModel.fromJson(Map<String, dynamic> json) {
     return ProcessingEventModel(
@@ -80,6 +86,9 @@ class ProcessingEventModel {
       eventType: json['event_type'] as String,
       description: json['description'] as String,
       completedAt: DateTime.parse(json['completed_at'] as String),
+      facility: json['facility'] as String? ?? 'Pahalgam Processing Plant #1',
+      inputBatchId: json['input_batch_id'] as String?,
+      outputBatchId: json['output_batch_id'] as String?,
     );
   }
 
@@ -91,5 +100,59 @@ class ProcessingEventModel {
         'event_type': eventType,
         'description': description,
         'completed_at': completedAt.toIso8601String(),
+        'facility': facility,
+        'input_batch_id': inputBatchId,
+        'output_batch_id': outputBatchId,
       };
 }
+
+class PackagingEventModel {
+  const PackagingEventModel({
+    required this.id,
+    required this.batchId,
+    required this.facility,
+    required this.packageSize,
+    required this.productId,
+    required this.outputBatchId,
+    required this.packagedAt,
+    this.packagerName = 'Kashmir Honey Packing Unit',
+    this.notes,
+  });
+
+  final String id;
+  final String batchId;
+  final String facility;
+  final String packageSize;
+  final String productId;
+  final String outputBatchId;
+  final DateTime packagedAt;
+  final String packagerName;
+  final String? notes;
+
+  factory PackagingEventModel.fromJson(Map<String, dynamic> json) {
+    return PackagingEventModel(
+      id: json['id'] as String,
+      batchId: json['batch_id'] as String,
+      facility: json['facility'] as String,
+      packageSize: json['package_size'] as String,
+      productId: json['product_id'] as String,
+      outputBatchId: json['output_batch_id'] as String,
+      packagedAt: DateTime.parse(json['packaged_at'] as String),
+      packagerName: json['packager_name'] as String? ?? 'Kashmir Honey Packing Unit',
+      notes: json['notes'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'batch_id': batchId,
+        'facility': facility,
+        'package_size': packageSize,
+        'product_id': productId,
+        'output_batch_id': outputBatchId,
+        'packaged_at': packagedAt.toIso8601String(),
+        'packager_name': packagerName,
+        'notes': notes,
+      };
+}
+

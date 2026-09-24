@@ -15,12 +15,14 @@ enum StageStatus {
 enum EvidenceType {
   sensorVerified,
   farmerRecorded,
-  laboratoryVerified;
+  laboratoryVerified,
+  processorRecorded;
 
   String get label => switch (this) {
-        EvidenceType.sensorVerified => 'Sensor Verified',
-        EvidenceType.farmerRecorded => 'Farmer Recorded',
-        EvidenceType.laboratoryVerified => 'Laboratory Verified',
+        EvidenceType.sensorVerified => 'SENSOR VERIFIED',
+        EvidenceType.farmerRecorded => 'FARMER RECORDED',
+        EvidenceType.laboratoryVerified => 'LAB VERIFIED',
+        EvidenceType.processorRecorded => 'PROCESSOR RECORDED',
       };
 }
 
@@ -92,6 +94,8 @@ class BatchModel {
     required this.blockchainStatus,
     required this.timeline,
     this.parentBatchId,
+    this.childBatchCode,
+    this.productId,
     this.notes,
   });
 
@@ -112,6 +116,8 @@ class BatchModel {
   final BlockchainStatus blockchainStatus;
   final List<TimelineStage> timeline;
   final String? parentBatchId;
+  final String? childBatchCode;
+  final String? productId;
   final String? notes;
 
   BatchModel copyWith({
@@ -132,6 +138,8 @@ class BatchModel {
     BlockchainStatus? blockchainStatus,
     List<TimelineStage>? timeline,
     String? parentBatchId,
+    String? childBatchCode,
+    String? productId,
     String? notes,
   }) {
     return BatchModel(
@@ -152,6 +160,8 @@ class BatchModel {
       blockchainStatus: blockchainStatus ?? this.blockchainStatus,
       timeline: timeline ?? this.timeline,
       parentBatchId: parentBatchId ?? this.parentBatchId,
+      childBatchCode: childBatchCode ?? this.childBatchCode,
+      productId: productId ?? this.productId,
       notes: notes ?? this.notes,
     );
   }
@@ -180,6 +190,8 @@ class BatchModel {
           .map((e) => TimelineStage.fromJson(e as Map<String, dynamic>))
           .toList(),
       parentBatchId: json['parent_batch_id'] as String?,
+      childBatchCode: json['child_batch_code'] as String?,
+      productId: json['product_id'] as String?,
       notes: json['notes'] as String?,
     );
   }
@@ -202,6 +214,8 @@ class BatchModel {
         'blockchain_status': blockchainStatus.name,
         'timeline': timeline.map((e) => e.toJson()).toList(),
         'parent_batch_id': parentBatchId,
+        'child_batch_code': childBatchCode,
+        'product_id': productId,
         'notes': notes,
       };
 }
