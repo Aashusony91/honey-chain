@@ -1,4 +1,4 @@
-"""
+﻿"""
 Madhur-Trace Backend Gateway
 
 Smart India Hackathon
@@ -14,7 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .database import Base, engine
 from . import models
-from .routers import image_validation, public, reports
+from .routers import image_validation, public, reports, traceability
 
 
 Base.metadata.create_all(bind=engine)
@@ -45,6 +45,7 @@ app.add_middleware(
 app.include_router(reports.router)
 app.include_router(public.router)
 app.include_router(image_validation.router)
+app.include_router(traceability.router)
 
 
 @app.get("/health")
@@ -54,3 +55,4 @@ def health_check():
         "service": "madhur-trace-backend-gateway",
         "problem_statement": "26021",
     }
+
