@@ -1,4 +1,5 @@
 "use client";
+import QRCode from "react-qr-code";
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -493,15 +494,34 @@ export default function HarvestPage() {
           </div>
 
           {lastResult.report_hash && (
-            <div className="mt-4 rounded-lg bg-white p-3 border border-emerald-200 text-xs">
-              <span className="text-stone-500 font-medium">Cryptographic SHA-256 Hash:</span>
-              <p className="font-mono text-stone-800 break-all mt-0.5">{lastResult.report_hash}</p>
-              <a
-                href={`/verify/${lastResult.report_hash}`}
-                className="mt-2 inline-flex items-center gap-1 text-honey-600 hover:text-honey-700 font-semibold"
-              >
-                🔍 View Public On-Chain Proof →
-              </a>
+            <div className="mt-4 flex flex-col md:flex-row gap-4">
+              <div className="flex-1 rounded-lg bg-white p-3 border border-emerald-200 text-xs flex flex-col justify-center">
+                <span className="text-stone-500 font-medium">Cryptographic SHA-256 Hash:</span>
+                <p className="font-mono text-stone-800 break-all mt-0.5">{lastResult.report_hash}</p>
+                <a
+                  href={`/verify/${lastResult.report_hash}`}
+                  className="mt-2 inline-flex items-center gap-1 text-honey-600 hover:text-honey-700 font-semibold"
+                >
+                  🔍 View Public On-Chain Proof →
+                </a>
+              </div>
+              
+              <div className="rounded-lg bg-white p-3 border border-emerald-200 flex flex-col items-center justify-center shrink-0">
+                <p className="text-[10px] font-bold text-stone-500 uppercase tracking-wide mb-2">Printable QR Code</p>
+                <div className="bg-white p-1">
+                  <QRCode 
+                    value={`${typeof window !== 'undefined' ? window.location.origin : ''}/trace/${lastResult.report_id}`}
+                    size={96}
+                    level="H"
+                  />
+                </div>
+                <a 
+                  href={`/trace/${lastResult.report_id}`}
+                  className="mt-2 text-[11px] text-indigo-600 font-semibold hover:underline"
+                >
+                  View Trace Lineage
+                </a>
+              </div>
             </div>
           )}
         </div>
