@@ -237,18 +237,28 @@ function BatchCard({
             </>
           )}
 
-          <a
-            href={
-              getEtherscanTxUrl(batch.blockchain_tx_hash) ??
-              `#${batch.blockchain_tx_hash}`
-            }
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-100 px-3 py-1.5 font-mono text-xs text-indigo-700 transition hover:bg-indigo-200"
-          >
-            🔗 {shortHash(batch.blockchain_tx_hash)}
-            <span className="text-indigo-400">↗</span>
-          </a>
+          <div className="flex flex-wrap items-center gap-2 mt-2">
+            <a
+              href={
+                getEtherscanTxUrl(batch.blockchain_tx_hash) ??
+                `#${batch.blockchain_tx_hash}`
+              }
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-100 px-3 py-1.5 font-mono text-xs text-indigo-700 transition hover:bg-indigo-200"
+            >
+              🔗 {shortHash(batch.blockchain_tx_hash)}
+              <span className="text-indigo-400">↗</span>
+            </a>
+
+            {/* Verify Integrity Button — strips 0x prefix to get report hash */}
+            <a
+              href={`/verify/${batch.blockchain_tx_hash.replace(/^0x/, "")}`}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-100 px-3 py-1.5 text-xs font-bold text-emerald-700 transition hover:bg-emerald-200"
+            >
+              🔍 Verify Integrity
+            </a>
+          </div>
 
           {!blockchainUp && !chainLoading && (
             <p className="mt-2 text-xs text-indigo-400">
@@ -257,6 +267,7 @@ function BatchCard({
           )}
         </div>
       )}
+
 
 
       {/* ── Anomaly Flags ──────────────────────────────── */}
