@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Hexagon, ShieldCheck, Leaf, Activity, QrCode } from "lucide-react";
+import { ArrowRight, Hexagon, ShieldCheck, Leaf, Activity, QrCode, Microscope } from "lucide-react";
 
 export default function HomePage() {
   return (
@@ -20,7 +20,10 @@ export default function HomePage() {
             </span>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/harvest" className="text-sm font-medium text-stone-600 hover:text-amber-600 transition-colors">
+            <Link href="/lab" className="text-sm font-medium text-stone-600 hover:text-amber-600 transition-colors">
+              Lab Portal
+            </Link>
+            <Link href="/harvest" className="text-sm font-medium text-stone-600 hover:text-amber-600 transition-colors hidden sm:block">
               Farmer Portal
             </Link>
             <Link href="/trace" className="btn-primary !px-5 !py-2 !rounded-full !text-sm shadow-amber-500/20 hover:shadow-amber-500/40">
@@ -53,7 +56,7 @@ export default function HomePage() {
             Experience the future of agricultural traceability. From the apiary to your breakfast table, every drop is verified by AI and cryptographically secured.
           </p>
           
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 flex-wrap">
             <Link href="/trace" className="w-full sm:w-auto btn-primary !px-8 !py-4 !rounded-full text-base group">
               <QrCode className="w-5 h-5 mr-2 opacity-80" />
               Trace a Batch
@@ -62,6 +65,10 @@ export default function HomePage() {
             <Link href="/login" className="w-full sm:w-auto btn-secondary !px-8 !py-4 !rounded-full text-base bg-white/80 backdrop-blur hover:bg-white">
               <Leaf className="w-5 h-5 mr-2 text-emerald-600" />
               Farmer Login
+            </Link>
+            <Link href="/lab" className="w-full sm:w-auto btn-secondary !px-8 !py-4 !rounded-full text-base bg-white/80 backdrop-blur hover:bg-white text-indigo-700 border-indigo-200 hover:border-indigo-300">
+              <Microscope className="w-5 h-5 mr-2 text-indigo-500" />
+              Lab Login
             </Link>
           </div>
         </div>
