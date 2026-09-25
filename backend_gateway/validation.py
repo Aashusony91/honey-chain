@@ -177,6 +177,11 @@ def validate_batch(
         validate_telemetry(
             payload
         )
-    )
+    # Hackathon Demo: Biological Yield Anomaly Trap (The Math Trap)
+    # A single beehive can physically only produce a maximum of ~30-35kg of honey per season.
+    if payload.telemetry and payload.telemetry.registered_hive_count > 0:
+        yield_per_hive = payload.weight_kg / payload.telemetry.registered_hive_count
+        if yield_per_hive > 35.0:
+            flags.append(f"STATISTICAL_YIELD_ANOMALY: Impossible biological yield ({yield_per_hive:.1f} kg/hive). Max limit is 35 kg/hive.")
 
     return flags

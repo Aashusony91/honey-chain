@@ -12,6 +12,15 @@ export interface UserSession {
 
 const AUTH_KEY = "honeychain_farmer_session";
 
+const GOV_DATABASE: Record<string, { name: string; region: string }> = {
+  "FARMER-MH-1001": { name: "Shivam Singh", region: "Maharashtra, India" },
+  "FARMER-UP-2002": { name: "Rakesh Anand", region: "Uttar Pradesh, India" },
+  "FARMER-GJ-3003": { name: "Sachine Thakur", region: "Gujarat, India" },
+  "FARMER-KA-4004": { name: "Tridas Khanna", region: "Karnataka, India" },
+  "FARMER-PB-5005": { name: "Aashish", region: "Punjab, India" },
+  "FARMER-RJ-6006": { name: "Mithi", region: "Rajasthan, India" }
+};
+
 export function login(farmerId: string, pin: string): UserSession {
   // In a real app, this calls the backend. For the hackathon, we mock the login.
   if (pin !== "1234") {
@@ -20,33 +29,17 @@ export function login(farmerId: string, pin: string): UserSession {
 
   const idUpper = farmerId.toUpperCase().trim();
 
-  // Government ID Format Validation
-  const idRegex = /^FARMER-[A-Z]{2}-\d{4}$/;
-  if (!idRegex.test(idUpper)) {
-    throw new Error("Invalid Format: ID must match Gov Registry (e.g., FARMER-MH-1234)");
+  // 1. Check if ID exists in our "Government Database"
+  const farmerData = GOV_DATABASE[idUpper];
+  
+  if (!farmerData) {
+    throw new Error("ID Not Found: This Farmer ID is not registered in the Government Database.");
   }
-  
-  // Create a dynamic name based on the ID length/characters for the demo
-  const names = [
-    "Shivam Singh", 
-    "Rakesh Anand", 
-    "Sachine Thakur", 
-    "Tridas Khanna", 
-    "Aashish", 
-    "Mithi"
-  ];
-  const nameIndex = idUpper.length % names.length;
-  
-  // Dynamic region based on ID prefix
-  let region = "Maharashtra, India";
-  if (idUpper.includes("-GJ-")) region = "Gujarat, India";
-  if (idUpper.includes("-KA-")) region = "Karnataka, India";
-  if (idUpper.includes("-UP-")) region = "Uttar Pradesh, India";
 
   const session: UserSession = {
     farmerId: idUpper,
-    name: names[nameIndex],
-    region: region,
+    name: farmerData.name,
+    region: farmerData.region,
     loginTime: Date.now(),
   };
 
