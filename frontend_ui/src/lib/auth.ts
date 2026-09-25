@@ -21,7 +21,14 @@ export function login(farmerId: string, pin: string): UserSession {
   const idUpper = farmerId.toUpperCase();
   
   // Create a dynamic name based on the ID length/characters for the demo
-  const names = ["Shivam Singh", "Rakesh Anand", "Sachine Thakur"];
+  const names = [
+    "Shivam Singh", 
+    "Rakesh Anand", 
+    "Sachine Thakur", 
+    "Tridas Khanna", 
+    "Aashish", 
+    "Mithi"
+  ];
   const nameIndex = idUpper.length % names.length;
   
   // Dynamic region based on ID prefix
