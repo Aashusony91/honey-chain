@@ -43,3 +43,27 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# ── Hardhat / Smart Contracts ─────────────────────────────────────
+smart_contracts/node_modules/
+smart_contracts/artifacts/
+smart_contracts/cache/
+smart_contracts/.env
+
+# ── Python Backend ────────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+backend_gateway/.env
+.venv/
+venv/
+
+# ── Next.js Frontend ──────────────────────────────────────────────
+frontend_ui/.env.local
+frontend_ui/node_modules/
+frontend_ui/.next/
+
+# ── Secrets (NEVER push these) ────────────────────────────────────
+.env
+.env.local
+*.pem
