@@ -18,7 +18,9 @@ export default function DashboardPage() {
       router.push("/login");
     } else {
       setUser(session);
-      setHarvests(getStoredHarvests());
+      // Filter harvests so they only see their own data
+      const allHarvests = getStoredHarvests();
+      setHarvests(allHarvests.filter(h => h.farmer_id === session.farmerId));
     }
   }, [router]);
 

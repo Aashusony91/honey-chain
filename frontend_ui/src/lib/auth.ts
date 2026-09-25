@@ -18,10 +18,22 @@ export function login(farmerId: string, pin: string): UserSession {
     throw new Error("Invalid PIN. Use '1234' for demo.");
   }
 
+  const idUpper = farmerId.toUpperCase();
+  
+  // Create a dynamic name based on the ID length/characters for the demo
+  const names = ["Rajesh Kumar", "Amit Patel", "Sunita Sharma", "Vikram Singh", "Priya Desai"];
+  const nameIndex = idUpper.length % names.length;
+  
+  // Dynamic region based on ID prefix
+  let region = "Maharashtra, India";
+  if (idUpper.includes("-GJ-")) region = "Gujarat, India";
+  if (idUpper.includes("-KA-")) region = "Karnataka, India";
+  if (idUpper.includes("-UP-")) region = "Uttar Pradesh, India";
+
   const session: UserSession = {
-    farmerId: farmerId.toUpperCase(),
-    name: "Rajesh Kumar", // Mock name
-    region: "Maharashtra, India",
+    farmerId: idUpper,
+    name: names[nameIndex],
+    region: region,
     loginTime: Date.now(),
   };
 
