@@ -101,6 +101,54 @@ def verify_report(
     )
 
 
+# ── HACKATHON DEMO ENDPOINTS ─────────────────────────────────
+# These endpoints exist purely for the judge demonstration.
+# They simulate a database hack and then restore it.
+
+@router.post("/demo/tamper/{report_hash}")
+def demo_tamper(report_hash: str, db: Session = Depends(get_db)):
+    """
+    DEMO ONLY: Silently modifies the database record for a report
+    WITHOUT updating its stored hash — simulating a database hack.
+    """
+    report = db.query(Report).filter(Report.report_hash == report_hash).first()
+    if not report:
+        return {"success": False, "message": "Report not found"}
+
+    data = json.loads(report.report_payload)
+    original_weight = data.get("harvest_weight_kg", 0)
+    # Hack: inflate weight by 500 kg (fraud!)
+    data["harvest_weight_kg"] = original_weight + 500.0
+    data["_tampered"] = True
+    data["_original_weight"] = original_weight
+    report.report_payload = json.dumps(data)
+    db.commit()
+    return {
+        "success": True,
+        "message": f"Database hacked! Weight changed from {original_weight}kg to {original_weight + 500}kg. Hash NOT updated.",
+    }
+
+
+@router.post("/demo/restore/{report_hash}")
+def demo_restore(report_hash: str, db: Session = Depends(get_db)):
+    """
+    DEMO ONLY: Restores the original data after the tamper demo.
+    """
+    report = db.query(Report).filter(Report.report_hash == report_hash).first()
+    if not report:
+        return {"success": False, "message": "Report not found"}
+
+    data = json.loads(report.report_payload)
+    if data.get("_tampered"):
+        data["harvest_weight_kg"] = data["_original_weight"]
+        del data["_tampered"]
+        del data["_original_weight"]
+        report.report_payload = json.dumps(data)
+        db.commit()
+        return {"success": True, "message": "Data restored to original."}
+    return {"success": True, "message": "Data was not tampered, nothing to restore."}
+
+
 @router.get("/trace/{batch_id}")
 def trace_batch_tree(batch_id: str, db: Session = Depends(get_db)):
     """

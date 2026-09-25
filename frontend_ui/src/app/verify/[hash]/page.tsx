@@ -4,29 +4,52 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { verifyReportHash, type PublicVerificationProof } from "@/lib/api";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
 export default function PublicVerifyPage() {
   const params = useParams();
   const reportHash = decodeURIComponent(params.hash as string);
 
-  const [proof, setProof]     = useState<PublicVerificationProof | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState<string | null>(null);
+  const [proof, setProof]         = useState<PublicVerificationProof | null>(null);
+  const [loading, setLoading]     = useState(true);
+  const [error, setError]         = useState<string | null>(null);
+  const [demoMsg, setDemoMsg]     = useState<string | null>(null);
+  const [demoLoading, setDemoLoading] = useState(false);
 
-  useEffect(() => {
-    async function load() {
-      setLoading(true);
-      setError(null);
-      try {
-        const data = await verifyReportHash(reportHash);
-        setProof(data);
-      } catch (e) {
-        setError("Could not reach the backend. Check your connection.");
-      } finally {
-        setLoading(false);
-      }
+  async function load() {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await verifyReportHash(reportHash);
+      setProof(data);
+    } catch (e) {
+      setError("Could not reach the backend. Check your connection.");
+    } finally {
+      setLoading(false);
     }
-    load();
-  }, [reportHash]);
+  }
+
+  useEffect(() => { load(); }, [reportHash]);
+
+  async function handleTamper() {
+    setDemoLoading(true);
+    setDemoMsg(null);
+    const res = await fetch(`${API_BASE}/api/public/demo/tamper/${reportHash}`, { method: "POST" });
+    const data = await res.json();
+    setDemoMsg("🕵️ " + data.message);
+    await load(); // re-verify — should now show NOT VERIFIED
+    setDemoLoading(false);
+  }
+
+  async function handleRestore() {
+    setDemoLoading(true);
+    setDemoMsg(null);
+    const res = await fetch(`${API_BASE}/api/public/demo/restore/${reportHash}`, { method: "POST" });
+    const data = await res.json();
+    setDemoMsg("✅ " + data.message);
+    await load(); // re-verify — should show VERIFIED again
+    setDemoLoading(false);
+  }
 
   if (loading) {
     return (
@@ -82,7 +105,7 @@ export default function PublicVerifyPage() {
         <p className={`mt-2 text-sm font-medium ${isVerified ? "text-emerald-600" : "text-red-600"}`}>
           {isVerified
             ? "This report's integrity is confirmed. The data has not been tampered with."
-            : "This report hash could not be verified. Data may be invalid or tampered."}
+            : "⚠️ TAMPER DETECTED! SHA-256 hash mismatch — data was altered after submission."}
         </p>
       </div>
 
@@ -153,6 +176,35 @@ export default function PublicVerifyPage() {
         </div>
       </div>
 
+      {/* ── Judge Demo Panel ─────────────────────────────── */}
+      <div className="mt-6 rounded-2xl border-2 border-dashed border-amber-300 bg-amber-50 p-5">
+        <p className="text-xs font-bold uppercase tracking-widest text-amber-700 mb-1">🎓 Judge Demo Panel</p>
+        <p className="text-xs text-amber-700 mb-4">
+          Simulate a database hack and watch the blockchain catch it in real time.
+        </p>
+        <div className="flex gap-3">
+          <button
+            onClick={handleTamper}
+            disabled={demoLoading}
+            className="flex-1 rounded-xl bg-red-600 py-2.5 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
+          >
+            {demoLoading ? "Working..." : "🕵️ Hack the Database"}
+          </button>
+          <button
+            onClick={handleRestore}
+            disabled={demoLoading}
+            className="flex-1 rounded-xl bg-emerald-600 py-2.5 text-sm font-bold text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
+          >
+            {demoLoading ? "Working..." : "🔄 Restore Original"}
+          </button>
+        </div>
+        {demoMsg && (
+          <p className="mt-3 rounded-lg bg-white border border-amber-200 px-3 py-2 text-xs font-mono text-stone-700">
+            {demoMsg}
+          </p>
+        )}
+      </div>
+
       {/* ── Info Footer ─────────────────────────────────── */}
       <p className="mt-6 text-center text-xs text-stone-400">
         This verification is powered by HoneyChain — SIH PS 26021.
@@ -161,3 +213,4 @@ export default function PublicVerifyPage() {
     </div>
   );
 }
+
