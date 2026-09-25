@@ -11,6 +11,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<UserSession | null>(null);
   const [harvests, setHarvests] = useState<HarvestEntry[]>([]);
+  const [liveStatuses, setLiveStatuses] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const session = getCurrentUser();
@@ -18,9 +19,30 @@ export default function DashboardPage() {
       router.push("/login");
     } else {
       setUser(session);
-      // Filter harvests so they only see their own data
       const allHarvests = getStoredHarvests();
-      setHarvests(allHarvests.filter(h => h.farmer_id === session.farmerId));
+      const userHarvests = allHarvests.filter(h => h.farmer_id === session.farmerId);
+      setHarvests(userHarvests);
+
+      // Fetch live statuses for synced harvests
+      const fetchStatuses = async () => {
+        const statuses: Record<string, string> = {};
+        for (const h of userHarvests) {
+          if (h.synced) {
+            try {
+              const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/public/trace/${h.batch_id}`);
+              if (res.ok) {
+                const data = await res.json();
+                statuses[h.batch_id] = data.status;
+              }
+            } catch (err) {
+              console.error("Failed to fetch status for", h.batch_id);
+            }
+          }
+        }
+        setLiveStatuses(statuses);
+      };
+      
+      fetchStatuses();
     }
   }, [router]);
 
@@ -114,19 +136,31 @@ export default function DashboardPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-100">
-                  {[...harvests].reverse().map((h) => (
-                    <tr key={h.id} className="hover:bg-stone-50/50 transition-colors">
-                      <td className="px-6 py-4 font-mono font-medium text-amber-700">{h.batch_id}</td>
-                      <td className="px-6 py-4 text-stone-600">{new Date(h.harvest_timestamp * 1000).toLocaleDateString()}</td>
-                      <td className="px-6 py-4 text-stone-900">{h.flora_source}</td>
-                      <td className="px-6 py-4 font-medium text-stone-900">{h.harvest_weight_kg} kg</td>
-                      <td className="px-6 py-4">
-                        <span className={h.synced ? "badge-verified" : "badge-pending"}>
-                          {h.synced ? "✅ Verified" : "⏳ Pending"}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                  {[...harvests].reverse().map((h) => {
+                    const liveStatus = liveStatuses[h.batch_id];
+                    let badgeClass = h.synced ? "badge-verified" : "badge-pending";
+                    let label = h.synced ? "✅ Verified" : "⏳ Pending";
+
+                    if (liveStatus === "SUSPENDED") {
+                      badgeClass = "bg-red-100 text-red-700 border border-red-200 px-2 py-1 rounded-full font-bold";
+                      label = "🚫 SUSPENDED (Tampered)";
+                    } else if (liveStatus === "FLAGGED_FOR_REVIEW") {
+                      badgeClass = "bg-amber-100 text-amber-700 border border-amber-200 px-2 py-1 rounded-full font-bold";
+                      label = "⚠️ FLAGGED";
+                    }
+
+                    return (
+                      <tr key={h.id} className="hover:bg-stone-50/50 transition-colors">
+                        <td className="px-6 py-4 font-mono font-medium text-amber-700">{h.batch_id}</td>
+                        <td className="px-6 py-4 text-stone-600">{new Date(h.harvest_timestamp * 1000).toLocaleDateString()}</td>
+                        <td className="px-6 py-4 text-stone-900">{h.flora_source}</td>
+                        <td className="px-6 py-4 font-medium text-stone-900">{h.harvest_weight_kg} kg</td>
+                        <td className="px-6 py-4">
+                          <span className={badgeClass}>{label}</span>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
