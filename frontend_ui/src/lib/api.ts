@@ -233,3 +233,17 @@ export async function syncBatches(
     batch_ids: results,
   };
 }
+
+export async function submitLabResults(batchId: string, labData: LabMetrics) {
+  const res = await fetch(`${API_BASE}/api/public/trace/${batchId}/lab`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(labData),
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Submit failed (${res.status}): ${err}`);
+  }
+  return res.json();
+}
+

@@ -154,13 +154,7 @@ def trace_batch_tree(batch_id: str, db: Session = Depends(get_db)):
                     "hive_weight_kg": round(weight_kg * 1.5, 1),
                     "registered_hive_count": 12,
                 },
-                "lab_results": {
-                    "hmf_content_mg_kg": 16.8,
-                    "moisture_percentage": 17.5,
-                    "sucrose_percentage": 3.2,
-                    "c3_c4_sugar_adulteration": False,
-                    "lab_cert_id": f"AGMARK-CERT-{report.id:04d}",
-                },
+                "lab_results": data.get("lab_results"),
                 "blockchain_tx_hash": tx_hash,
                 "anomaly_flags": [] if is_verified else ["SUSPICIOUS_ANOMALY: Flagged during audit"],
             },
@@ -241,4 +235,36 @@ def trace_batch_tree(batch_id: str, db: Session = Depends(get_db)):
             "anomaly_flags": [],
         },
         "children": [],
-    }
+    }
+
+from pydantic import BaseModel
+from fastapi import HTTPException
+
+class LabSubmitRequest(BaseModel):
+    hmf_content_mg_kg: float
+    moisture_percentage: float
+    sucrose_percentage: float
+    c3_c4_sugar_adulteration: bool
+    lab_cert_id: str
+
+@router.post("/trace/{batch_id}/lab")
+def submit_lab_data(batch_id: str, payload: LabSubmitRequest, db: Session = Depends(get_db)):
+    clean_id = batch_id.strip().lstrip("#")
+    
+    report = None
+    if clean_id.isdigit():
+        report = db.query(Report).filter(Report.id == int(clean_id)).first()
+    if not report:
+        report = db.query(Report).filter(Report.report_payload.like(f"%{clean_id}%")).first()
+        
+    if not report:
+        raise HTTPException(status_code=404, detail="Batch not found")
+        
+    data = json.loads(report.report_payload)
+    data["lab_results"] = payload.model_dump()
+    report.report_payload = json.dumps(data)
+    
+    db.commit()
+    db.refresh(report)
+    return {"status": "success", "message": "Lab results attached to batch."}
+

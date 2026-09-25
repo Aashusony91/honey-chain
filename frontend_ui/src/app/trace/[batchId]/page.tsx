@@ -1,4 +1,5 @@
 "use client";
+import QRCode from "react-qr-code";
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
@@ -380,17 +381,26 @@ export default function TraceDetailPage() {
           </h1>
           <p className="mt-1 font-mono text-sm text-stone-500">{batchId}</p>
         </div>
-        {trace.batch.anomaly_flags.length === 0 ? (
-          <div className="flex flex-col items-center gap-1 rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-3">
-            <span className="text-2xl">✅</span>
-            <span className="text-xs font-bold text-emerald-700">VERIFIED</span>
+        <div className="flex items-center gap-3">
+          <div className="rounded-lg bg-white p-1.5 border border-stone-200 shadow-sm shrink-0">
+            <QRCode 
+              value={`${typeof window !== 'undefined' ? window.location.origin : ''}/trace/${batchId}`}
+              size={68}
+              level="M"
+            />
           </div>
-        ) : (
-          <div className="flex flex-col items-center gap-1 rounded-xl bg-red-50 border border-red-200 px-4 py-3">
-            <span className="text-2xl">🚩</span>
-            <span className="text-xs font-bold text-red-700">FLAGGED</span>
-          </div>
-        )}
+          {trace.batch.anomaly_flags.length === 0 ? (
+            <div className="flex flex-col items-center justify-center gap-1 rounded-xl bg-emerald-50 border border-emerald-200 w-20 h-20 shrink-0">
+              <span className="text-2xl">✅</span>
+              <span className="text-[10px] font-bold text-emerald-700">VERIFIED</span>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center gap-1 rounded-xl bg-red-50 border border-red-200 w-20 h-20 shrink-0">
+              <span className="text-2xl">🚩</span>
+              <span className="text-[10px] font-bold text-red-700">FLAGGED</span>
+            </div>
+          )}
+        </div>
       </div>
 
       {usingMock && (
