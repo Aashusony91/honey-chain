@@ -69,7 +69,19 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 /* ── Batch Timeline Card ───────────────────────────────── */
-function BatchCard({ batch, isRoot }: { batch: HoneyBatchPayload; isRoot: boolean }) {
+function BatchCard({
+  batch,
+  isRoot,
+  chainHistory,
+  chainLoading,
+  blockchainUp,
+}: {
+  batch: HoneyBatchPayload;
+  isRoot: boolean;
+  chainHistory: ChainHistory | null;
+  chainLoading: boolean;
+  blockchainUp: boolean;
+}) {
   const lab = batch.lab_results;
 
   return (
@@ -399,6 +411,9 @@ export default function TraceDetailPage() {
               key={node.batch.batch_id}
               batch={node.batch}
               isRoot={idx === 0}
+              chainHistory={chainHistory}
+              chainLoading={chainLoading}
+              blockchainUp={blockchainUp}
             />
           ))}
         </div>
