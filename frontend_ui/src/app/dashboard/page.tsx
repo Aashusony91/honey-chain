@@ -32,7 +32,7 @@ export default function DashboardPage() {
               const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/public/trace/${h.batch_id}`);
               if (res.ok) {
                 const data = await res.json();
-                statuses[h.batch_id] = data.status;
+                statuses[h.batch_id] = data.batch.status;
               }
             } catch (err) {
               console.error("Failed to fetch status for", h.batch_id);
