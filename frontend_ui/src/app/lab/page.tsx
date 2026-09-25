@@ -4,6 +4,13 @@ import { useState } from "react";
 import { submitLabResults } from "@/lib/api";
 
 export default function LabPage() {
+  // Login State
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [labId, setLabId] = useState("");
+  const [pin, setPin] = useState("");
+  const [loginError, setLoginError] = useState("");
+
+  // Dashboard State
   const [batchId, setBatchId] = useState("");
   const [hmf, setHmf] = useState("");
   const [moisture, setMoisture] = useState("");
@@ -12,6 +19,16 @@ export default function LabPage() {
   const [certId, setCertId] = useState("");
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (labId.trim().toUpperCase() === "LAB-101" && pin === "4321") {
+      setIsLoggedIn(true);
+      setLoginError("");
+    } else {
+      setLoginError("Invalid Lab ID or PIN. Please try again.");
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,10 +50,60 @@ export default function LabPage() {
     setLoading(false);
   };
 
+  if (!isLoggedIn) {
+    return (
+      <main className="min-h-screen bg-stone-50 flex items-center justify-center p-6 font-sans text-stone-900">
+        <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-sm border border-stone-200">
+          <div className="text-center mb-8">
+            <h1 className="text-2xl font-bold">🔬 Lab Authentication</h1>
+            <p className="text-sm text-stone-500 mt-2">Sign in to access the testing portal</p>
+          </div>
+          
+          <form onSubmit={handleLogin} className="space-y-5">
+            {loginError && (
+              <div className="p-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl">
+                {loginError}
+              </div>
+            )}
+            <div>
+              <label className="block text-sm font-semibold text-stone-700 mb-1.5 ml-1">Lab Assistant ID</label>
+              <input
+                type="text"
+                required
+                value={labId}
+                onChange={e => setLabId(e.target.value)}
+                placeholder="e.g. LAB-101"
+                className="w-full px-4 py-3 bg-white border-2 border-stone-200 rounded-xl uppercase"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-stone-700 mb-1.5 ml-1">Security PIN</label>
+              <input
+                type="password"
+                required
+                value={pin}
+                onChange={e => setPin(e.target.value)}
+                placeholder="Enter 4-digit PIN"
+                className="w-full px-4 py-3 bg-white border-2 border-stone-200 rounded-xl"
+              />
+              <p className="text-xs text-stone-400 ml-1 mt-2">Hint: Use ID <strong>LAB-101</strong> and PIN <strong>4321</strong></p>
+            </div>
+            <button type="submit" className="w-full bg-honey-600 text-white font-bold py-3.5 rounded-xl hover:bg-honey-700 transition-colors">
+              Access Dashboard
+            </button>
+          </form>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-stone-50 p-6 pt-24 font-sans text-stone-900">
       <div className="mx-auto max-w-lg">
-        <h1 className="text-2xl font-bold mb-6">🔬 Certified Lab Portal</h1>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold">🔬 Certified Lab Portal</h1>
+          <button onClick={() => setIsLoggedIn(false)} className="text-sm text-stone-500 hover:text-stone-700">Logout</button>
+        </div>
         
         <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl shadow-sm border border-stone-200 space-y-4">
           <div>
