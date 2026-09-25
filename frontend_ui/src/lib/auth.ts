@@ -18,7 +18,13 @@ export function login(farmerId: string, pin: string): UserSession {
     throw new Error("Invalid PIN. Use '1234' for demo.");
   }
 
-  const idUpper = farmerId.toUpperCase();
+  const idUpper = farmerId.toUpperCase().trim();
+
+  // Government ID Format Validation
+  const idRegex = /^FARMER-[A-Z]{2}-\d{4}$/;
+  if (!idRegex.test(idUpper)) {
+    throw new Error("Invalid Format: ID must match Gov Registry (e.g., FARMER-MH-1234)");
+  }
   
   // Create a dynamic name based on the ID length/characters for the demo
   const names = [
