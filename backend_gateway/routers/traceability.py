@@ -1,4 +1,4 @@
-﻿import hashlib
+import hashlib
 import json
 import math
 import secrets
@@ -193,7 +193,29 @@ def create_batch(payload: BatchCreateRequest, db: Session = Depends(get_db)):
         metadata={"flora_source": payload.flora_source, "hive_id": payload.hive_id},
     )
     db.commit()
-    return {"batch_id": batch_id, "stage": batch.current_stage, "message": "Batch created."}
+
+    # ── Blockchain anchor (non-blocking) ──────────────────────────
+    # Anchors the harvest to the smart contract after saving to DB.
+    # API returns 200 even if blockchain is unreachable.
+    blockchain_tx_hash = None
+    try:
+        from ..blockchain_helper import register_harvest_on_chain
+        blockchain_tx_hash = register_harvest_on_chain(
+            weight_kg=payload.weight_kg,
+            ipfs_hash=batch_id,           # batch_id used as on-chain reference
+        )
+        if blockchain_tx_hash:
+            print(f"[blockchain] ✅ Anchored {batch_id} → tx: {blockchain_tx_hash}")
+    except Exception as e:
+        print(f"[blockchain] ⚠️ Skipped (non-critical): {e}")
+    # ─────────────────────────────────────────────────────────────
+
+    return {
+        "batch_id": batch_id,
+        "stage": batch.current_stage,
+        "message": "Batch created.",
+        "blockchain_tx_hash": blockchain_tx_hash,   # returned to frontend
+    }
 
 
 @router.post("/batches/{batch_id}/events")

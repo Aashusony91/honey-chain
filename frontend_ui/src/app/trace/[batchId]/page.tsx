@@ -3,6 +3,12 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { fetchTrace, getMockTrace, type TraceNode, type HoneyBatchPayload } from "@/lib/api";
+import {
+  getChainHistory,
+  isBlockchainReachable,
+  getEtherscanTxUrl,
+  type ChainHistory,
+} from "@/lib/blockchain";
 
 /* ── Helper: format unix timestamp ─────────────────────── */
 function formatDate(ts: number): string {
@@ -180,17 +186,49 @@ function BatchCard({ batch, isRoot }: { batch: HoneyBatchPayload; isRoot: boolea
         </div>
       )}
 
-      {/* ── Section 3: Blockchain ──────────────────────── */}
+      {/* ── Section 3: Blockchain (Live from Sepolia/Localhost) ── */}
       {batch.blockchain_tx_hash && (
         <div className="mt-4 rounded-xl bg-indigo-50 p-4">
           <h4 className="text-sm font-semibold text-indigo-800 mb-1">
             ⛓️ Blockchain Record
           </h4>
-          <p className="text-xs text-indigo-600 mb-2">
-            Immutably anchored on Polygon
-          </p>
+
+          {chainLoading && (
+            <p className="text-xs text-indigo-400 animate-pulse">Fetching on-chain data…</p>
+          )}
+
+          {chainHistory && !chainLoading && (
+            <>
+              <div className="mb-2 flex items-center gap-2">
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                  ✅ {chainHistory.network === "sepolia" ? "Sepolia Testnet" : "Local Node"}
+                </span>
+                <span className="text-xs text-indigo-600">
+                  State: <strong>{chainHistory.batch.stateLabel}</strong> · {chainHistory.batch.weightKg} kg
+                </span>
+              </div>
+              <div className="space-y-1 mb-3">
+                {chainHistory.history.map((cp, i) => (
+                  <div key={i} className="flex items-center gap-2 text-xs text-indigo-700">
+                    <span className="h-1.5 w-1.5 rounded-full bg-indigo-400" />
+                    <span className="font-medium">{cp.stateLabel}</span>
+                    <span className="text-indigo-400">·</span>
+                    <span className="font-mono text-indigo-500">
+                      {cp.actor.slice(0, 8)}…{cp.actor.slice(-6)}
+                    </span>
+                    <span className="text-indigo-400">·</span>
+                    <span>{new Date(cp.timestamp).toLocaleDateString("en-IN")}</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
           <a
-            href={`https://polygonscan.com/tx/${batch.blockchain_tx_hash}`}
+            href={
+              getEtherscanTxUrl(batch.blockchain_tx_hash) ??
+              `#${batch.blockchain_tx_hash}`
+            }
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-100 px-3 py-1.5 font-mono text-xs text-indigo-700 transition hover:bg-indigo-200"
@@ -198,8 +236,15 @@ function BatchCard({ batch, isRoot }: { batch: HoneyBatchPayload; isRoot: boolea
             🔗 {shortHash(batch.blockchain_tx_hash)}
             <span className="text-indigo-400">↗</span>
           </a>
+
+          {!blockchainUp && !chainLoading && (
+            <p className="mt-2 text-xs text-indigo-400">
+              ℹ️ Blockchain node offline — fill .env.local to connect Sepolia.
+            </p>
+          )}
         </div>
       )}
+
 
       {/* ── Anomaly Flags ──────────────────────────────── */}
       {batch.anomaly_flags.length > 0 && (
@@ -225,25 +270,49 @@ export default function TraceDetailPage() {
   const params = useParams();
   const batchId = decodeURIComponent(params.batchId as string);
 
-  const [trace, setTrace] = useState<TraceNode | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [usingMock, setUsingMock] = useState(false);
+  const [trace, setTrace]           = useState<TraceNode | null>(null);
+  const [loading, setLoading]       = useState(true);
+  const [error, setError]           = useState<string | null>(null);
+  const [usingMock, setUsingMock]   = useState(false);
+
+  // ── Blockchain state ─────────────────────────────────────
+  const [chainHistory, setChainHistory] = useState<ChainHistory | null>(null);
+  const [chainLoading, setChainLoading] = useState(false);
+  const [blockchainUp, setBlockchainUp] = useState(false);
 
   useEffect(() => {
     async function load() {
       setLoading(true);
       setError(null);
+
+      // 1. Fetch backend trace (existing logic unchanged)
       try {
         const data = await fetchTrace(batchId);
         setTrace(data);
         setUsingMock(false);
       } catch {
-        // Fallback to mock data so demo always works
         setTrace(getMockTrace(batchId));
         setUsingMock(true);
       } finally {
         setLoading(false);
+      }
+
+      // 2. Fetch blockchain data in parallel (non-blocking)
+      const chainReachable = await isBlockchainReachable();
+      setBlockchainUp(chainReachable);
+      if (chainReachable) {
+        setChainLoading(true);
+        try {
+          // The blockchain batch ID is numeric — extract from batch string ID if present
+          // e.g. "HC-BATCH-3A9F1C" → try batchId param as number for demo, default to 1
+          const numericId = parseInt(batchId) || 1;
+          const history = await getChainHistory(numericId);
+          setChainHistory(history);
+        } catch {
+          setChainHistory(null);
+        } finally {
+          setChainLoading(false);
+        }
       }
     }
     load();
