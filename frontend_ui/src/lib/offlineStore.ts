@@ -83,3 +83,40 @@ export function isOnline(): boolean {
   if (typeof navigator === "undefined") return true;
   return navigator.onLine;
 }
+
+// ── Flag Counter ─────────────────────────────────────────────────────────────
+
+const FLAG_COUNT_KEY = "honeychain_flag_counts";
+
+interface FlagRecord {
+  farmerId: string;
+  totalFlags: number;
+  lastFlaggedAt: string | null;
+}
+
+export function getFlagRecord(farmerId: string): FlagRecord {
+  if (typeof window === "undefined") return { farmerId, totalFlags: 0, lastFlaggedAt: null };
+  try {
+    const raw = localStorage.getItem(FLAG_COUNT_KEY);
+    const all: FlagRecord[] = raw ? JSON.parse(raw) : [];
+    return all.find((r) => r.farmerId === farmerId) ?? { farmerId, totalFlags: 0, lastFlaggedAt: null };
+  } catch {
+    return { farmerId, totalFlags: 0, lastFlaggedAt: null };
+  }
+}
+
+export function incrementFlagCount(farmerId: string, count: number): FlagRecord {
+  if (typeof window === "undefined") return { farmerId, totalFlags: 0, lastFlaggedAt: null };
+  const raw = localStorage.getItem(FLAG_COUNT_KEY);
+  const all: FlagRecord[] = raw ? JSON.parse(raw) : [];
+  const idx = all.findIndex((r) => r.farmerId === farmerId);
+  if (idx >= 0) {
+    all[idx].totalFlags += count;
+    all[idx].lastFlaggedAt = new Date().toISOString();
+  } else {
+    all.push({ farmerId, totalFlags: count, lastFlaggedAt: new Date().toISOString() });
+  }
+  localStorage.setItem(FLAG_COUNT_KEY, JSON.stringify(all));
+  return all.find((r) => r.farmerId === farmerId)!;
+}
+

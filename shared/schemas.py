@@ -15,7 +15,7 @@ Canonical Pydantic v2 models and enums consumed by all five microservices:
 from __future__ import annotations
 
 from enum import Enum
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -94,6 +94,7 @@ class HoneyBatchPayload(BaseModel):
     as it moves through the supply chain.  Every service reads and
     enriches fields on this payload.
     """
+    model_config = {"extra": "allow"}
 
     batch_id: str = Field(
         ..., min_length=1, description="Unique batch identifier"
@@ -174,12 +175,25 @@ class AgentResponse(BaseModel):
         pattern=r"^(success|failed|flagged_for_review)$",
         description="Outcome status — one of: success, failed, flagged_for_review",
     )
-    updated_payload: HoneyBatchPayload = Field(
-        ..., description="Enriched / modified batch payload"
+    updated_payload: Optional[HoneyBatchPayload] = Field(
+        None, description="Enriched / modified batch payload"
+    )
+    result: Optional[Dict[str, Any]] = Field(
+        None, description="Verification result dict from the fraud engine"
     )
     error_message: Optional[str] = Field(
         None, description="Human-readable error detail (set when status != success)"
     )
+
+
+class VerificationResult(BaseModel):
+    """Result of AI fraud engine verification on a honey batch."""
+
+    report_id: str = Field(..., description="Batch or report ID being verified")
+    is_valid: bool = Field(..., description="True if the batch passed all checks")
+    confidence_score: float = Field(..., ge=0.0, le=1.0, description="Confidence score between 0 and 1")
+    flagged_anomalies: List[str] = Field(default_factory=list, description="List of anomaly descriptions")
+    suggested_action: str = Field(..., description="APPROVE or FLAG_FOR_INSPECTION")
 
 
 # ─────────────────────────────────────────────────────────────
