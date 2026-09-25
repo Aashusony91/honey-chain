@@ -107,46 +107,39 @@ def verify_report(
 
 @router.post("/demo/tamper/{report_hash}")
 def demo_tamper(report_hash: str, db: Session = Depends(get_db)):
-    """
-    DEMO ONLY: Silently modifies the database record for a report
-    WITHOUT updating its stored hash — simulating a database hack.
-    """
     report = db.query(Report).filter(Report.report_hash == report_hash).first()
     if not report:
         return {"success": False, "message": "Report not found"}
-
     data = json.loads(report.report_payload)
     original_weight = data.get("harvest_weight_kg", 0)
-    # Hack: inflate weight by 500 kg (fraud!)
+    batch_id = data.get("batch_id", f"HC-BATCH-{report.id}")
     data["harvest_weight_kg"] = original_weight + 500.0
     data["_tampered"] = True
     data["_original_weight"] = original_weight
+    data["_original_status"] = report.verification_status
     report.report_payload = json.dumps(data)
+    report.verification_status = "SUSPENDED"
     db.commit()
-    return {
-        "success": True,
-        "message": f"Database hacked! Weight changed from {original_weight}kg to {original_weight + 500}kg. Hash NOT updated.",
-    }
+    return {"success": True, "batch_id": batch_id, "message": f"Database hacked! Weight changed from {original_weight}kg to {original_weight + 500}kg. Status flipped to SUSPENDED."}
 
 
 @router.post("/demo/restore/{report_hash}")
 def demo_restore(report_hash: str, db: Session = Depends(get_db)):
-    """
-    DEMO ONLY: Restores the original data after the tamper demo.
-    """
     report = db.query(Report).filter(Report.report_hash == report_hash).first()
     if not report:
         return {"success": False, "message": "Report not found"}
-
     data = json.loads(report.report_payload)
+    batch_id = data.get("batch_id", f"HC-BATCH-{report.id}")
     if data.get("_tampered"):
+        report.verification_status = data.get("_original_status", "VERIFIED")
         data["harvest_weight_kg"] = data["_original_weight"]
         del data["_tampered"]
         del data["_original_weight"]
+        del data["_original_status"]
         report.report_payload = json.dumps(data)
         db.commit()
-        return {"success": True, "message": "Data restored to original."}
-    return {"success": True, "message": "Data was not tampered, nothing to restore."}
+        return {"success": True, "batch_id": batch_id, "message": "Data fully restored to original. Status back to VERIFIED."}
+    return {"success": True, "batch_id": batch_id, "message": "Data was not tampered, nothing to restore."}
 
 
 @router.get("/trace/{batch_id}")

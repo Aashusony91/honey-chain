@@ -15,6 +15,8 @@ export default function PublicVerifyPage() {
   const [error, setError]         = useState<string | null>(null);
   const [demoMsg, setDemoMsg]     = useState<string | null>(null);
   const [demoLoading, setDemoLoading] = useState(false);
+  const [traceBatchId, setTraceBatchId] = useState<string | null>(null);
+  const [isTampered, setIsTampered] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -37,7 +39,9 @@ export default function PublicVerifyPage() {
     const res = await fetch(`${API_BASE}/api/public/demo/tamper/${reportHash}`, { method: "POST" });
     const data = await res.json();
     setDemoMsg("🕵️ " + data.message);
-    await load(); // re-verify — should now show NOT VERIFIED
+    setTraceBatchId(data.batch_id || null);
+    setIsTampered(true);
+    await load();
     setDemoLoading(false);
   }
 
@@ -47,7 +51,9 @@ export default function PublicVerifyPage() {
     const res = await fetch(`${API_BASE}/api/public/demo/restore/${reportHash}`, { method: "POST" });
     const data = await res.json();
     setDemoMsg("✅ " + data.message);
-    await load(); // re-verify — should show VERIFIED again
+    setTraceBatchId(data.batch_id || null);
+    setIsTampered(false);
+    await load();
     setDemoLoading(false);
   }
 
@@ -198,10 +204,35 @@ export default function PublicVerifyPage() {
             {demoLoading ? "Working..." : "🔄 Restore Original"}
           </button>
         </div>
+
         {demoMsg && (
           <p className="mt-3 rounded-lg bg-white border border-amber-200 px-3 py-2 text-xs font-mono text-stone-700">
             {demoMsg}
           </p>
+        )}
+
+        {/* After tamper — show link to trace page to see SUSPENDED badge */}
+        {traceBatchId && isTampered && (
+          <a
+            href={`/trace/${traceBatchId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-red-100 border border-red-300 py-2.5 text-sm font-bold text-red-700 hover:bg-red-200 transition-colors"
+          >
+            🚫 View Trace Page — Now shows SUSPENDED →
+          </a>
+        )}
+
+        {/* After restore — show link to trace page to see COMPLIANT badge */}
+        {traceBatchId && !isTampered && demoMsg && (
+          <a
+            href={`/trace/${traceBatchId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-emerald-100 border border-emerald-300 py-2.5 text-sm font-bold text-emerald-700 hover:bg-emerald-200 transition-colors"
+          >
+            ✅ View Trace Page — Now shows COMPLIANT →
+          </a>
         )}
       </div>
 
