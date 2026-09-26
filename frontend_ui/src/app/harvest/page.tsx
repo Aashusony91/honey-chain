@@ -518,7 +518,7 @@ export default function HarvestPage() {
                 <p className="text-[10px] font-bold text-stone-500 uppercase tracking-wide mb-2">Printable QR Code</p>
                 <div className="bg-white p-1">
                   <QRCode 
-                    value={`${typeof window !== 'undefined' ? window.location.origin : ''}/trace/${lastResult.report_id}`}
+                    value={`${typeof window !== 'undefined' ? window.location.origin.replace('localhost', '172.23.217.69') : ''}/trace/${lastResult.report_id}`}
                     size={96}
                     level="H"
                   />

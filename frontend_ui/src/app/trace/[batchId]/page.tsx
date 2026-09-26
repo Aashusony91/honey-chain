@@ -395,7 +395,7 @@ export default function TraceDetailPage() {
         <div className="flex items-center gap-3">
           <div className="rounded-lg bg-white p-1.5 border border-stone-200 shadow-sm shrink-0">
             <QRCode 
-              value={`${typeof window !== 'undefined' ? window.location.origin : ''}/trace/${batchId}`}
+              value={`${typeof window !== 'undefined' ? window.location.origin.replace('localhost', '172.23.217.69') : ''}/trace/${batchId}`}
               size={68}
               level="M"
             />
