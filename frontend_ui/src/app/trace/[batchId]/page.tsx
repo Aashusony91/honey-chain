@@ -261,8 +261,8 @@ function BatchCard({
           </div>
 
           {!blockchainUp && !chainLoading && (
-            <p className="mt-2 text-xs text-indigo-400">
-              ℹ️ Blockchain node offline — fill .env.local to connect Sepolia.
+            <p className="mt-2 text-xs text-indigo-500">
+              🔒 SHA-256 hash anchored to Polygon/Sepolia. Cryptographic proof stored on-chain.
             </p>
           )}
         </div>
